@@ -3,42 +3,27 @@ import diff from 'virtual-dom/diff';
 import serializePatch from 'vdom-serialized-patch/serialize';
 import fromJson from 'vdom-as-json/fromJson';
 import app from './views/app';
+import configureStore from './configure-store';
 
-let currentVDom;
-
-// our entire application state
-// as a plain object
-const state = {
+const initialState = {
   count: 0,
   url: '/'
 };
+const store = configureStore(initialState);
+let currentVDom;
 
 // messages from the main thread come
 // in here
 self.onmessage = ({data}) => {
-  const { type, payload } = data;
-
-  // handle different event types
-  // update the state accordingly
-  switch (type) {
-    case 'start': {
-      currentVDom = fromJson(payload.virtualDom);
-      state.url = payload.url;
-      break;
-    }
-    case 'setUrl': {
-      state.url = payload;
-      break;
-    }
-    case 'increment': {
-      state.count++;
-      break;
-    }
-    case 'decrement': {
-      state.count--;
-      break;
-    }
+  if (data.type === 'start') {
+    currentVDom = fromJson(data.virtualDom);
   }
+
+  store.dispatch(data);
+};
+
+store.subscribe(function() {
+  const state = store.getState();
 
   // our entire app in one line:
   const newVDom = app(state);
@@ -52,4 +37,4 @@ self.onmessage = ({data}) => {
 
   // send patches and current url back to the main thread
   self.postMessage({url: state.url, payload: serializePatch(patches)});
-};
+});

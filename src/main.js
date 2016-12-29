@@ -4,6 +4,7 @@ import virtualize from 'vdom-virtualize';
 import toJson from 'vdom-as-json/toJson';
 import applyPatch from 'vdom-serialized-patch/patch';
 import { getLocalPathname } from 'local-links';
+import { setUrl } from './actions/url';
 import './styles/main.styl';
 
 // Create an instance of our worker.
@@ -37,10 +38,11 @@ worker.onmessage = ({data}) => {
 // we start things off by sending a virtual DOM
 // representation of the *real* DOM along with
 // the current URL to our worker
-worker.postMessage({type: 'start', payload: {
+worker.postMessage({
+  type: 'start',
   virtualDom: toJson(virtualize(rootElement)),
   url: location.pathname
-}});
+});
 
 // if the user hits the back/forward buttons
 // pass the new url to the worker
@@ -61,7 +63,7 @@ document.body.addEventListener('click', (event) => {
     // instead, post the new URL to our worker
     // which will trigger compute a new vDom
     // based on that new URL state
-    worker.postMessage({type: 'setUrl', payload: pathname});
+    worker.postMessage(setUrl(pathname));
     return;
   }
 
