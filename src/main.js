@@ -84,5 +84,3 @@ document.body.addEventListener('click', (event) => {
   }
 
 });
-
-setInterval(() => worker.postMessage(incrementCount()), 400);
