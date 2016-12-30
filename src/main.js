@@ -5,6 +5,7 @@ import toJson from 'vdom-as-json/toJson';
 import applyPatch from 'vdom-serialized-patch/patch';
 import { getLocalPathname } from 'local-links';
 import { setUrl } from './actions/url';
+import { incrementCount }  from './actions/count';
 import './styles/main.styl';
 
 // Create an instance of our worker.
@@ -81,4 +82,7 @@ document.body.addEventListener('click', (event) => {
     event.preventDefault();
     worker.postMessage(click);
   }
+
 });
+
+setInterval(() => worker.postMessage(incrementCount()), 400);
