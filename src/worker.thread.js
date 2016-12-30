@@ -4,6 +4,7 @@ import serializePatch from 'vdom-serialized-patch/serialize';
 import fromJson from 'vdom-as-json/fromJson';
 import app from './views/app';
 import configureStore from './configure-store';
+import { fromState as urlFromState } from './url';
 
 const initialState = {
   count: 0,
@@ -36,5 +37,7 @@ store.subscribe(function() {
   currentVDom = newVDom;
 
   // send patches and current url back to the main thread
-  self.postMessage({url: state.url, payload: serializePatch(patches)});
+  self.postMessage({
+    url: urlFromState(state), domPatch: serializePatch(patches)
+  });
 });

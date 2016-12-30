@@ -4,7 +4,7 @@ import virtualize from 'vdom-virtualize';
 import toJson from 'vdom-as-json/toJson';
 import applyPatch from 'vdom-serialized-patch/patch';
 import { getLocalPathname } from 'local-links';
-import { setUrl } from './actions/url';
+import { toActions as urlToActions } from './url';
 import { incrementCount }  from './actions/count';
 import './styles/main.styl';
 
@@ -22,9 +22,9 @@ const rootElement = document.body.firstChild;
 // the real DOM. We do this on a requestAnimationFrame
 // for minimal impact
 worker.onmessage = ({data}) => {
-  const { url, payload } = data;
+  const { url, domPatch } = data;
   requestAnimationFrame(() => {
-    applyPatch(rootElement, payload);
+    applyPatch(rootElement, domPatch);
   });
   // we only want to update the URL
   // if it's different than the current
@@ -41,14 +41,20 @@ worker.onmessage = ({data}) => {
 // the current URL to our worker
 worker.postMessage({
   type: 'start',
-  virtualDom: toJson(virtualize(rootElement)),
-  url: location.pathname
+  virtualDom: toJson(virtualize(rootElement))
 });
+
+function dispatchUrl(url) {
+  urlToActions(url)
+    .forEach(action => worker.postMessage(action))
+}
+
+dispatchUrl(location.pathname);
 
 // if the user hits the back/forward buttons
 // pass the new url to the worker
 window.addEventListener('popstate', () => {
-  worker.postMessage({type: 'setUrl', payload: location.pathname});
+   dispatchUrl(location.pathname);
 });
 
 // listen for all clicks globally
@@ -64,7 +70,7 @@ document.body.addEventListener('click', (event) => {
     // instead, post the new URL to our worker
     // which will trigger compute a new vDom
     // based on that new URL state
-    worker.postMessage(setUrl(pathname));
+    dispatchUrl(pathname);
     return;
   }
 

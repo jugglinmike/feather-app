@@ -1,5 +1,6 @@
 import { combineReducers } from 'redux';
 import count from './count';
-import url from './url';
+import focusedWeek from './focused-week';
+import focusedPhase from './focused-phase';
 
-export default combineReducers({ count, url });
+export default combineReducers({ count, focusedWeek, focusedPhase });

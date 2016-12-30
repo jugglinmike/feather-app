@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 import peopleNames from '../bocoupers.json';
 
 let projectTypes = ['Perch', 'Consulting', 'Administrative'];
@@ -19,31 +21,48 @@ function gen(name) {
 	while (available > 0) {
 		currentLength = Math.floor(Math.random() * available) + 1;
 		utils.push({
-		name: pick(projectNames),
-		type: pick(projectTypes),
-		begin: total - available,
-		end: total - available + currentLength
-	});
+			name: pick(projectNames),
+			type: pick(projectTypes),
+			begin: total - available,
+			end: total - available + currentLength
+		});
 		available -= currentLength;
 	}
 
 	return { name: name, utils: utils };
 }
 
-export default function week() {
+export default function week(state) {
+	let focusedWeek = moment(state.focusedWeek);
 	let utils = peopleNames.map(gen);
+	const prevWeekUrl = `/date/${focusedWeek.clone().subtract(1, 'weeks').format('YYYY-MM-DD')}/phase/1`;
+	const nextWeekUrl = `/date/${focusedWeek.clone().add(1, 'weeks').format('YYYY-MM-DD')}/phase/1`;
+	const allPhaseUrl = `/date/${focusedWeek.format('YYYY-MM-DD')}/`;
+	const body = utils.map(function(person) {
+			return <tr>
+				<th>{person.name}</th>
+				{person.utils.map(function(util) {
+					let width = util.end - util.begin;
+					return <td
+						className={'day ' + util.type.toLowerCase()}
+						colSpan={width}>
+							{util.name}
+						</td>;
+				})}
+			</tr>;
+		});
 
 	return <table>
 		<thead>
 			<tr>
 				<th></th>
-				<th><a href="/week">&lt; Previous Week</a></th>
+				<th><a href={prevWeekUrl}>&lt; Previous Week</a></th>
 				<th></th>
-				<th>All Phases</th>
+				<th><a href={allPhaseUrl}>All Phases</a></th>
 				<th></th>
-				<th><a href="/week">Next Week &gt;</a></th>
+				<th><a href={nextWeekUrl}>Next Week &gt;</a></th>
 			</tr>
-			<tr>
+			<tr className="labels">
 				<th></th>
 				<th>Monday</th>
 				<th>Tuesday</th>
@@ -52,22 +71,6 @@ export default function week() {
 				<th>Friday</th>
 			</tr>
 		</thead>
-		<tbody>
-			{
-				utils.map(function(person) {
-					return <tr>
-						<td>{person.name}</td>
-						{person.utils.map(function(util) {
-							let width = util.end - util.begin;
-							return <td
-								className={'day ' + util.type.toLowerCase()}
-								colSpan={width}>
-									{util.name}
-								</td>;
-						})}
-					</tr>;
-				})
-			}
-		</tbody>
+		<tbody>{ body }</tbody>
 	</table>;
 }
