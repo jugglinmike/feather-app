@@ -1,22 +1,20 @@
 import moment from 'moment';
 
-const phaseData = [
-  { projectName: 'Other', name: 'Non-Administrative Staff' },
-  { projectName: 'Other', name: 'All Coop Review' },
-  { projectName: 'Skillsoft: Artisan project', name: 'Phase 1' },
-  { projectName: 'Greenpeace Design Deal', name: 'Phase One' },
-  { projectName: 'Bocoup.com', name: 'Phase 1' },
-  { projectName: 'JavaScript on Things (Lyza\'s book)', name: 'Phase 1' },
-  { projectName: 'In-Q-tel Virtual Valley MOU', name: 'MOU - VV 2nd Extension' },
-  { projectName: 'HBP 2nd Re-engagement', name: 'HBP 2nd Re-engagement' },
-  { projectName: 'Other', name: 'Admin Staff Only' },
-  { projectName: 'T3 Live Continued Access', name: 'Second Three Months' },
-  { projectName: 'AI Timeline', name: 'Phase 1 of 1' },
-  { projectName: 'HBP Higher Ed Redesign 3rd re-engagement', name: '3 of 3' },
-  { projectName: 'Boston College Continued Access', name: 'Second Three Months' },
-  { projectName: 'Boston College Continued Access', name: 'Second six months' },
-  { projectName: 'Automated Development Environment', name: 'Phase One' }
-];
+// TODO: Place these in a dedicated (and tested) "phase selectors" module
+function isActiveBetween(phase, before, after) {
+	let { first_day: firstDay, last_day: lastDay } = phase;
+	return moment(before).isBetween(firstDay, lastDay) ||
+		moment(after).isBetween(firstDay, lastDay);
+}
+
+function activePhases(phases, before, after) {
+	return Object.keys(phases).map((id) => {
+		let phase = phases[id];
+		if (isActiveBetween(phase, before, after)) {
+			return phase;
+		}
+	}).filter(elem => !!elem);
+}
 
 export default function phases(state) {
 	let focusedWeek = moment(state.focusedWeek);
@@ -27,11 +25,17 @@ export default function phases(state) {
 	});
 	const prevWeekUrl = `/date/${focusedWeek.clone().subtract(1, 'weeks').format('YYYY-MM-DD')}/`;
 	const nextWeekUrl = `/date/${focusedWeek.clone().add(1, 'weeks').format('YYYY-MM-DD')}/`;
-	const body = phaseData.map((phase, idx) => {
+	const body = activePhases(state.phases, weekMoments[0], weekMoments[4]).map((phase, idx) => {
 		let weekCells = weekMoments.map((weekMoment) => {
-			return <td>
-				<a href={`/date/${weekMoment.format('YYYY-MM-DD')}/phase/${idx}`}>Review</a>
-			</td>;
+			let reviewLink = '';
+
+			if (isActiveBetween(phase, weekMoment, weekMoment.clone().add(1, 'weeks'))) {
+				reviewLink = <a href={`/date/${weekMoment.format('YYYY-MM-DD')}/phase/${phase.id}`}>
+					Review
+				</a>;
+			}
+
+			return <td>{ reviewLink }</td>;
 		});
 		return <tr>
 			<td className='phase-label'>

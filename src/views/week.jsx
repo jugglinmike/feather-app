@@ -42,12 +42,16 @@ export default function week(state) {
 			return <tr>
 				<th>{person.name}</th>
 				{person.utils.map(function(util) {
+					let cells = [];
 					let width = util.end - util.begin;
-					return <td
-						className={'day ' + util.type.toLowerCase()}
-						colSpan={width}>
-							{util.name}
-						</td>;
+					while (cells.length < width) {
+						cells.push(
+							<td className={'day ' + util.type.toLowerCase()}>
+								{util.name}
+							</td>
+						);
+					}
+					return cells;
 				})}
 			</tr>;
 		});

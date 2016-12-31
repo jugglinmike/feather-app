@@ -4,7 +4,7 @@ import serializePatch from 'vdom-serialized-patch/serialize';
 import fromJson from 'vdom-as-json/fromJson';
 import app from './views/app';
 import configureStore from './configure-store';
-import { fromState as urlFromState } from './url';
+import { toActions as urlToActions, fromState as urlFromState } from './url';
 
 const initialState = {
   count: 0,
@@ -18,6 +18,10 @@ let currentVDom;
 self.onmessage = ({data}) => {
   if (data.type === 'start') {
     currentVDom = fromJson(data.virtualDom);
+  } else if (data.type === 'url') {
+    urlToActions(data.url)
+      .forEach(action => store.dispatch(action));
+    return;
   }
 
   store.dispatch(data);

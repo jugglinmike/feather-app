@@ -4,7 +4,6 @@ import virtualize from 'vdom-virtualize';
 import toJson from 'vdom-as-json/toJson';
 import applyPatch from 'vdom-serialized-patch/patch';
 import { getLocalPathname } from 'local-links';
-import { toActions as urlToActions } from './url';
 import { incrementCount }  from './actions/count';
 import './styles/main.styl';
 
@@ -45,8 +44,7 @@ worker.postMessage({
 });
 
 function dispatchUrl(url) {
-  urlToActions(url)
-    .forEach(action => worker.postMessage(action))
+  worker.postMessage({ type: 'url', url });
 }
 
 dispatchUrl(location.pathname);
